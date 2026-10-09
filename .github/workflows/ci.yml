@@ -1,49 +1,47 @@
 name: Lab 6 CI
 
 on:
-push:
-branches:
-- main
-pull_request:
-branches:
-- main
-workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
-contents: read
+  contents: read
 
 jobs:
-test-and-validate:
-name: Test Python and Validate Terraform
-runs-on: ubuntu-latest
+  test-and-validate:
+    name: Test Python and Validate Terraform
+    runs-on: ubuntu-latest
 
-```
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  - name: Set up Python
-    uses: actions/setup-python@v5
-    with:
-      python-version: "3.12"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-  - name: Install test dependencies
-    run: python -m pip install pytest
+      - name: Install test dependencies
+        run: python -m pip install pytest
 
-  - name: Run Python tests
-    run: python -m pytest -v
+      - name: Run Python tests
+        run: python -m pytest -v
 
-  - name: Set up Terraform
-    uses: hashicorp/setup-terraform@v3
-    with:
-      terraform_version: "1.9.8"
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
 
-  - name: Check Terraform formatting
-    run: terraform -chdir=terraform fmt -check -recursive
+      - name: Check Terraform formatting
+        run: terraform -chdir=terraform fmt -check -recursive
 
-  - name: Initialize Terraform
-    run: terraform -chdir=terraform init -backend=false
+      - name: Initialize Terraform
+        run: terraform -chdir=terraform init -backend=false
 
-  - name: Validate Terraform
-    run: terraform -chdir=terraform validate
-```
+      - name: Validate Terraform
+        run: terraform -chdir=terraform validate
