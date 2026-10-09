@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+terraform.tfvars
+*.tfvars
+*.tfvars.json
+terraform/terraform.tfstate*
+terraform/lambda.zip
+
+# Terraform lock file
+# Keep this file committed for reproducible provider versions
+# .terraform.lock.hcl
+
+# AWS / local credentials
+.aws/
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
