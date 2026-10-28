@@ -1,3 +1,4 @@
+
 resource "aws_iam_role" "lambda" {
   name = "aws-terraform-lab6-lambda-role"
 
@@ -33,28 +34,44 @@ resource "aws_iam_role_policy" "lambda" {
 
     Statement = [
       {
-        Effect = "Allow"
-
-        Action = [
-          "dynamodb:GetItem",
-          "dynamodb:PutItem",
-          "dynamodb:Scan",
-          "dynamodb:Query"
-        ]
-
+        Sid      = "CreateTasks"
+        Effect   = "Allow"
+        Action   = ["dynamodb:PutItem"]
         Resource = aws_dynamodb_table.tasks.arn
       },
-
       {
+        Sid      = "QueryTasksByOwner"
+        Effect   = "Allow"
+        Action   = ["dynamodb:Query"]
+        Resource = "${aws_dynamodb_table.tasks.arn}/index/owner_id-index"
+      },
+      {
+        Sid    = "WriteXRayTraces"
         Effect = "Allow"
 
         Action = [
-          "logs:CreateLogGroup",
+          "xray:PutTraceSegments",
+          "xray:PutTelemetryRecords"
+        ]
+
+        Resource = "*"
+      },
+      {
+        Sid      = "DecryptLambdaEnvironment"
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt"]
+        Resource = aws_kms_key.logs.arn
+      },
+      {
+        Sid    = "WriteLambdaLogs"
+        Effect = "Allow"
+
+        Action = [
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ]
 
-        Resource = "*"
+        Resource = "${aws_cloudwatch_log_group.lambda.arn}:*"
       }
     ]
   })

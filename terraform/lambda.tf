@@ -17,6 +17,13 @@ resource "aws_lambda_function" "api" {
   timeout     = 10
   memory_size = 128
 
+  kms_key_arn = aws_kms_key.logs.arn
+
+
+  tracing_config {
+    mode = "Active"
+  }
+
   environment {
     variables = {
       TABLE_NAME  = aws_dynamodb_table.tasks.name

@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+.venv-checkov/
 
 # Terraform
 .terraform/
@@ -35,3 +36,25 @@ Thumbs.db
 
 # Logs
 *.log
+terraform-validate.txt
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.secret
+
+# Terraform local overrides and crash dumps
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+crash.*.log
+
+# Local editor and temporary files
+*.tmp
+*.bak
+
+# Saved Terraform plans and local plan reviews
+terraform/tfplan
+terraform/plan-review.txt

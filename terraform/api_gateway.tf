@@ -17,29 +17,67 @@ resource "aws_apigatewayv2_integration" "lambda" {
   payload_format_version = "2.0"
 }
 
-resource "aws_apigatewayv2_route" "health" {
-  api_id    = aws_apigatewayv2_api.http.id
-  route_key = "GET /health"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+resource "aws_apigatewayv2_authorizer" "cognito" {
+  api_id           = aws_apigatewayv2_api.http.id
+  name             = "aws-terraform-lab6-cognito-jwt"
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+
+  jwt_configuration {
+    audience = [aws_cognito_user_pool_client.api.id]
+    issuer   = "https://cognito-idp.${var.aws_region}.amazonaws.com/${aws_cognito_user_pool.api.id}"
+  }
 }
 
+resource "aws_apigatewayv2_route" "health" {
+  #checkov:skip=CKV_AWS_309:Public health endpoint is intentional for uptime monitoring; task routes require Cognito authorization.
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /health"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = "NONE"
+}
 resource "aws_apigatewayv2_route" "create_task" {
-  api_id    = aws_apigatewayv2_api.http.id
-  route_key = "POST /tasks"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "POST /tasks"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+  authorization_scopes = [
+    "tasks-api/write"
+  ]
 }
 
 resource "aws_apigatewayv2_route" "list_tasks" {
-  api_id    = aws_apigatewayv2_api.http.id
-  route_key = "GET /tasks"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /tasks"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+  authorization_scopes = [
+    "tasks-api/read"
+  ]
 }
+
 
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.http.id
   name        = "$default"
   auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_access.arn
+
+    format = jsonencode({
+      requestId  = "$context.requestId"
+      routeKey   = "$context.routeKey"
+      status     = "$context.status"
+      sourceIp   = "$context.identity.sourceIp"
+      httpMethod = "$context.httpMethod"
+      path       = "$context.path"
+    })
+  }
 }
+
 
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowExecutionFromHttpApi"

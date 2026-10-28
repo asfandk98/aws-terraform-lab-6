@@ -1,0 +1,24 @@
+﻿flowchart TD
+    User["Client / API Consumer"]
+    Cognito["Amazon Cognito<br/>User Pool and OAuth scopes"]
+    API["Amazon API Gateway<br/>HTTP API"]
+    Auth["JWT Authorizer<br/>Validates issuer, audience and scopes"]
+    Lambda["AWS Lambda<br/>Python 3.12"]
+    DB[("Amazon DynamoDB<br/>Tasks table and owner_id-index")]
+    Logs["Amazon CloudWatch Logs"]
+    XRay["AWS X-Ray"]
+    KMS["AWS KMS<br/>Encryption key"]
+
+    User -->|"Sign in"| Cognito
+    Cognito -->|"JWT access token"| User
+    User -->|"HTTPS request with token"| API
+    API -->|"Protected task routes"| Auth
+    Auth -->|"Authorized request"| Lambda
+    API -->|"Public health route"| Lambda
+    Lambda -->|"Query or create tasks"| DB
+
+    API -.->|"Access logs"| Logs
+    Lambda -.->|"Application logs"| Logs
+    Lambda -.->|"Tracing"| XRay
+    KMS -.->|"Configured encryption"| Lambda
+    KMS -.->|"Configured log encryption"| Logs
